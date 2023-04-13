@@ -149,6 +149,7 @@ def about_window():
     TFrame = Style()
     TFrame.configure("TFrame", background="#1A1423", borderwidth=0, highlightthickness=0, relief="flat")
     
+    # ignore all of this, it's just my failed attempts at making a text widget with multiple styles
     # # Create a Text widget
     # title_and_version_text = Text(info_window, height=1, wrap='none', font=('FOT-Rodin Pro UB', 24), borderwidth=0, highlightthickness=0, relief="flat")
     # title_and_version_text.insert(END, 'ZyrenthSorter ', 'title')
