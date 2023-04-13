@@ -129,18 +129,38 @@ def about_window():
     image_label.configure(anchor="center")
     image_label.config(background="#1A1423")
 
-    # Create a Text widget
-    title_and_version_text = Text(info_window, height=1, wrap='none', font=('FOT-Rodin Pro UB', 24), borderwidth=0, highlightthickness=0, relief="flat")
-    title_and_version_text.insert(END, 'ZyrenthSorter ', 'title')
-    title_and_version_text.insert(END, 'v1.0.0', 'version')
-    title_and_version_text.tag_configure("title", foreground='#EACDC2', font=("FOT-Rodin Pro UB", 24))
-    title_and_version_text.tag_configure("version", foreground='#D19596', font=("FOT-Rodin Pro M", 12))
-    # Grid the widgets
-    title_and_version_text.grid(row=1, column=0)
-    title_and_version_text.config(background="#1A1423")
+    title_and_version_frame = Frame(info_window, padding=10)
+    title_label = Label(title_and_version_frame, text="ZyrenthSorter", font=("FOT-Rodin Pro UB", 28), foreground="#EACDC2")
+    title_label.grid(row=0, rowspan=2, column=0)
+    title_label.configure(anchor="e")
+    title_label.config(background="#1A1423", padding=(0, 0), width=11)
+    version_label = Label(title_and_version_frame, text="v1.0.0", font=("FOT-Rodin Pro M", 12), foreground="#D19596")
+    version_label.grid(row=1, column=1)
+    version_label.configure(anchor="w")
+    version_label.config(background="#1A1423", padding=(0,0), width=5)
+    title_and_version_frame.grid(row=1, column=0, columnspan=3, sticky="nsew")
+    title_and_version_frame.config(style="TFrame")
 
-    title_and_version_label = Label(info_window, text=title_and_version_text.get("1.0", "end-1c"))
-    title_and_version_label.grid(row=5, column=0, columnspan=3, sticky="nsew")
+    title_and_version_frame.grid_columnconfigure(0, weight=0)
+    title_and_version_frame.grid_columnconfigure(1, weight=3)
+    title_and_version_frame.grid_rowconfigure(0, weight=1)
+    title_and_version_frame.grid_rowconfigure(1, weight=1)
+
+    TFrame = Style()
+    TFrame.configure("TFrame", background="#1A1423", borderwidth=0, highlightthickness=0, relief="flat")
+    
+    # # Create a Text widget
+    # title_and_version_text = Text(info_window, height=1, wrap='none', font=('FOT-Rodin Pro UB', 24), borderwidth=0, highlightthickness=0, relief="flat")
+    # title_and_version_text.insert(END, 'ZyrenthSorter ', 'title')
+    # title_and_version_text.insert(END, 'v1.0.0', 'version')
+    # title_and_version_text.tag_configure("title", foreground='#EACDC2', font=("FOT-Rodin Pro UB", 24))
+    # title_and_version_text.tag_configure("version", foreground='#D19596', font=("FOT-Rodin Pro M", 12))
+    # # Grid the widgets
+    # title_and_version_text.grid(row=1, column=0)
+    # title_and_version_text.config(background="#1A1423")
+
+    # title_and_version_label = Label(info_window, text=title_and_version_text.get("1.0", "end-1c"))
+    # title_and_version_label.grid(row=5, column=0, columnspan=3, sticky="nsew")
     
     # version_label = Label(info_window, text="v1.0.0")
     # version_label.grid(row=3, column=0, columnspan=3, sticky="nsew")
@@ -174,7 +194,7 @@ def about_window():
     info_window.rowconfigure(6, weight=1)
 
     image_label.grid_configure(padx=10, pady=(10,0))
-    title_and_version_text.grid_configure(padx=10, pady=(0,0))
+    title_and_version_frame.grid_configure(padx=10, pady=(0,0))
     subtitle_label.grid_configure(padx=10, pady=(0,0))
     code_overflow_image.grid_configure(padx=10, pady=(0,10))
 
