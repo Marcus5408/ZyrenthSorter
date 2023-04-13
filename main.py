@@ -1,14 +1,11 @@
 import os
 import sys
 from tkinter import *
-
-# keep access to the normal tk button class, reason is later
-class tkButton(Button):
-    pass
-
+class tkButton(Button): pass # keep access to the normal tk button class, reason is later
 from tkinter.ttk import *
 from tkinter.scrolledtext import ScrolledText
 import requests
+import openai
 import secrets
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
@@ -16,6 +13,10 @@ from PIL import Image, ImageTk
 from svglib.svglib import svg2rlg
 from svglib.svglib import SvgRenderer
 import webbrowser
+from time import sleep
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def import_image(image_relative_path, size=(24, 24)):
     # this stupid function is here because tkinter is stupid and doesn"t like relative paths for images
@@ -101,20 +102,29 @@ class ChatUI:
         master.rowconfigure(4, weight=1)
 
     def send_message(self):
-        message = self.input_box.get()
+        message = self.input_box.get("1.0", "end-1c").strip()
+        
         # send message to ChatGPT API and get response
         response = "Response from ChatGPT API"
 
         # create new text box for message and response
-        message_box = Text(self.chat_window, height=1, width=50)
-        message_box.insert(END, "You: " + message + "\nChatGPT: " + response)
-        # message_box.configure(state=DISABLED)
-        self.chat_window.window_create(END, window=message_box)
+        message_box = Text(self.chat_window, height=10, width=50)
+
+        # don't add message to chat window if it's empty
+        if message == "":
+            return
+        else:
+            message_box.insert(END, "You: " + message.strip())
+            message_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12))
+            sleep(0.5)
+            self.chat_window.window_create(END, window=message_box)
 
         # update message count
         self.message_count += 1
 
-        self.input_box.delete(0, END)
+        self.input_box.delete("1.0", END)
+
+
 
 def about_window():
     # create a popup window
@@ -217,13 +227,18 @@ if __name__ == "__main__":
     subtitle_label.grid(row=1, column=0, columnspan=2, sticky="ew")
     subtitle_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro M", 12))
 
-    image, imported = import_image("/assets/images/info.png", (24, 24))
-    about_button = tkButton(window, text="About", image=imported, command=about_window, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    about_image, about_imported = import_image("/assets/images/info.png", (24, 24))
+    about_button = tkButton(window, text="About", image=about_imported, command=about_window, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     about_button.grid(row=0, column=1, sticky="e", padx=(0,10), pady=(10,0))
+
+    regenerate_image, regenerate_imported = import_image("/assets/images/regenerate_message.png", (24, 24))
+    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, command=regenerate_imported, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    regenerate_button.grid(row=1, column=1, sticky="e", padx=(0,10), pady=(0,10))
 
     title_label.grid_configure(padx=10, pady=(10,0))
     subtitle_label.grid_configure(padx=10, pady=(0,10))
     about_button.grid_configure(padx=10, pady=(10,0))
+    regenerate_button.grid_configure(padx=10, pady=(0,10))
 
     chat_ui = ChatUI(window)
 
