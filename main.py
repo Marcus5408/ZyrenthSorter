@@ -15,6 +15,7 @@ from reportlab.graphics import renderPM
 from PIL import Image, ImageTk
 from svglib.svglib import svg2rlg
 from svglib.svglib import SvgRenderer
+import webbrowser
 
 def import_image(image_relative_path, size=(24, 24)):
     # this stupid function is here because tkinter is stupid and doesn"t like relative paths for images
@@ -28,6 +29,19 @@ def import_image(image_relative_path, size=(24, 24)):
     image_path = script_dir + image_relative_path
     # print(image_relative_path)
     image = Image.open(image_path)
+    # get the image"s dimensions
+    width, height = image.size
+    # scale the smaller dimension to the size passed in, if none passed in use 24x24
+    if width > height:
+        scale = size[0] / width
+        width = size[0]
+        height = height * scale
+    else:
+        scale = size[1] / height
+        height = size[1]
+        width = width * scale
+    # resize the image
+    size = (int(width), int(height))
     image = image.resize(size)
     imported = ImageTk.PhotoImage(image)
     # print(imported)
@@ -106,34 +120,43 @@ def about_window():
     # create a popup window
     info_window = Toplevel()
     info_window.title("About ZyrenthSorter")
-    info_window.geometry("400x300")
+    info_window.geometry("400x600")
 
     # create a image label
-    image, imported = import_image("/assets/images/file.png", (100, 100))
-    image_label = Label(info_window, image=imported)
+    logo, imported_logo = import_image("/assets/images/ZyrenthSorter_Logo.png", (150, 150))
+    image_label = Label(info_window, image=imported_logo)
     image_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
     image_label.configure(anchor="center")
     image_label.config(background="#1A1423")
 
-    title_label = Label(info_window, text="ZyrenthSorter")
-    title_label.grid(row=1, column=0, columnspan=3, sticky="nsew")
-    title_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro UB", 24))
-    title_label.configure(anchor="center")
+    # Create a Text widget
+    title_and_version_text = Text(info_window, height=1, wrap='none', font=('FOT-Rodin Pro UB', 24), borderwidth=0, highlightthickness=0, relief="flat")
+    title_and_version_text.insert(END, 'ZyrenthSorter ', 'title')
+    title_and_version_text.insert(END, 'v1.0.0', 'version')
+    title_and_version_text.tag_configure("title", foreground='#EACDC2', font=("FOT-Rodin Pro UB", 24))
+    title_and_version_text.tag_configure("version", foreground='#D19596', font=("FOT-Rodin Pro M", 12))
+    # Grid the widgets
+    title_and_version_text.grid(row=1, column=0)
+    title_and_version_text.config(background="#1A1423")
+
+    title_and_version_label = Label(info_window, text=title_and_version_text.get("1.0", "end-1c"))
+    title_and_version_label.grid(row=5, column=0, columnspan=3, sticky="nsew")
+    
+    # version_label = Label(info_window, text="v1.0.0")
+    # version_label.grid(row=3, column=0, columnspan=3, sticky="nsew")
+    # version_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro M", 12))
+    # version_label.configure(anchor="center")
 
     subtitle_label = Label(info_window, text="by Issac Liu")
-    subtitle_label.grid(row=2, column=0, columnspan=3, sticky="nsew")
+    subtitle_label.grid(row=3, column=0, columnspan=3, sticky="nsew")
     subtitle_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro DB", 14))
     subtitle_label.configure(anchor="center")
-    
-    version_label = Label(info_window, text="v1.0.0")
-    version_label.grid(row=3, column=0, columnspan=3, sticky="nsew")
-    version_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro M", 12))
-    version_label.configure(anchor="center")
 
-    subtitle_label = Label(info_window, text="for TechCodes CodeOverflow 2023")
-    subtitle_label.grid(row=4, column=0, columnspan=3, sticky="nsew")
-    subtitle_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro L", 12))
-    subtitle_label.configure(anchor="center")
+    code_mark, imported_code_mark = import_image("/assets/images/code_overflow_mark.png", (350, 140)) # ratio is 2.5:1 
+    code_overflow_image = tkButton(info_window, text="Code Overflow 2023", image=imported_code_mark, command=lambda: webbrowser.open("https://codeoverflow.devpost.com"))
+    code_overflow_image.grid(row=4, column=0, columnspan=3, sticky="nsew")
+    code_overflow_image.config(background="#1A1423", foreground="#EACDC2", borderwidth=0, font=("FOT-Rodin Pro DB", 12), width=350, height=140)
+    code_overflow_image.configure(anchor="center")
 
     ok_button = tkButton(info_window, text="OK", command=info_window.destroy)
     ok_button.grid(row=6, column=1, sticky="nsew")
@@ -146,11 +169,15 @@ def about_window():
     info_window.rowconfigure(1, weight=1)
     info_window.rowconfigure(2, weight=1)
     info_window.rowconfigure(3, weight=1)
+    info_window.rowconfigure(4, weight=1)
+    info_window.rowconfigure(5, weight=4)
+    info_window.rowconfigure(6, weight=1)
 
     image_label.grid_configure(padx=10, pady=(10,0))
-    title_label.grid_configure(padx=10, pady=(10,0))
+    title_and_version_text.grid_configure(padx=10, pady=(0,0))
     subtitle_label.grid_configure(padx=10, pady=(0,0))
-    version_label.grid_configure(padx=10, pady=(0,10))
+    code_overflow_image.grid_configure(padx=10, pady=(0,10))
+
     ok_button.grid_configure(padx=10, pady=(10,10))
 
     info_window.config(background="#1A1423")
