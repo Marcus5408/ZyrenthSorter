@@ -218,8 +218,8 @@ class ChatUI:
             wrap="word",
         )
         if role == "assistant":
-            message_box.config(foreground="#774C60")
-            
+            message_box.config(background="#774C60")
+
         message_box.grid(column=0, columnspan=1, row=self.current_row, sticky="nsew")
         self.current_row += 1
 
