@@ -1,6 +1,7 @@
 # ZyrenthSorter
  
-A Python program that helps you organize your computer's files, supercharged with ZyrenthAI.
+A Python program that helps you organize your computer's files, supercharged with ZyrenthAI. Made for TechCodes Code Overflow 2023.
+<a href="[https://codeoverflow.devpost.com](https://codeoverflow.devpost.com)"><img src="[Code Overflow 2023](https://github.com/Marcus5408/ZyrenthSorter/blob/main/assets/images/code_overflow_mark.png)" alt="Image Description"></a>
 
 ## What is ZyrenthSorter?
 
