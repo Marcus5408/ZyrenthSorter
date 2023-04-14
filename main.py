@@ -124,12 +124,11 @@ class ChatUI:
 
             self.input_box.delete("1.0", END)
 
-            print(messages)
+            # print(messages)
             # send message to openai api
             response = openai.ChatCompletion.create(
-                engine="gpt-3.5-turbo",
+                model="gpt-3.5-turbo",
                 messages=messages,
-                n = 1,
                 max_tokens = 100,
                 temperature = 0.9,
                 stop=["\n", " Human:", " Zyrenth:"],
@@ -144,7 +143,7 @@ class ChatUI:
             messages.pop(len(messages) - 1)
             # send message to openai api
             response = openai.ChatCompletion.create(
-                engine="gpt-3.5-turbo",
+                model="gpt-3.5-turbo",
                 messages=messages,
                 n = 1,
                 max_tokens = 100,
@@ -274,7 +273,7 @@ if __name__ == "__main__":
     window.title("ZyrenthSorter")
     window.geometry("400x630")
 
-    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly female chatbot that is still in development. You will help the user sort the files on their  computer. You first ask them for their name, then ask for the location of the files they want to sort. You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
+    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will help the user sort the files on their  computer. You first ask them for their name, then ask for the location of the files they want to sort. You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
 
     title_label = Label(window, text="ZyrenthSorter")
     title_label.grid(row=0, column=0, columnspan=2, sticky="ew")
@@ -290,15 +289,13 @@ if __name__ == "__main__":
     chat_ui = ChatUI(window)
 
     regenerate_image, regenerate_imported = import_image("/assets/images/regenerate_message.png", (24, 24))
-    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, command=chat_ui.send_message("resend"), background="#1A1423", highlightbackground="#372549", foreground="blue",     activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     regenerate_button.grid(row=1, column=1, sticky="e", padx=(0,10), pady=(0,10))
 
     title_label.grid_configure(padx=10, pady=(10,0))
     subtitle_label.grid_configure(padx=10, pady=(0,10))
     about_button.grid_configure(padx=10, pady=(10,0))
     regenerate_button.grid_configure(padx=10, pady=(0,10))
-
-
 
     chat_ui.create_message("assistant", "Zyrenth", "Hello! I'm Zyrenth, here to help you sort your files. What is your name?")
         
