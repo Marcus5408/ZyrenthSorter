@@ -316,9 +316,7 @@ if __name__ == "__main__":
     window.title("ZyrenthSorter")
     window.geometry("400x630")
 
-    # messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will help the user sort the files on their computer. You first ask them for their name, then ask for the location of the files they want to sort. They will give you You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
-
-    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will act somewhat like a therapist and help the user sort out their feelings and thoughts. You first ask them for their name and then begin conversing."})
+    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will help the user sort the files on their computer. You first ask them for their name, then ask for the location of the files they want to sort. They will give you You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
 
     title_label = Label(window, text="ZyrenthSorter")
     title_label.grid(row=0, column=0, columnspan=2, sticky="ew")
