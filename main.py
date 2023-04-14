@@ -153,7 +153,7 @@ class ChatUI:
                     timeout=100
                 )
 
-                self.create_message("system", "Zyrenth", r''+ response["choices"][0]["message"]["content"])
+                self.create_message("assistant", "Zyrenth", r''+ response["choices"][0]["message"]["content"])
                 print(response.choices[0].message)
             else: 
                 self.create_message("user", "You", message.strip())
@@ -174,7 +174,7 @@ class ChatUI:
                     timeout=100
                 )
 
-                self.create_message("system", "Zyrenth", r''+response["choices"][0]["message"]["content"])
+                self.create_message("assistant", "Zyrenth", r''+response["choices"][0]["message"]["content"])
                 print(response.choices[0].message)
                 print(response.choices[0])
         else:
@@ -193,7 +193,7 @@ class ChatUI:
                 stop=[" Human:", " Zyrenth:",],
                 timeout=100
             )
-            self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
+            self.create_message("assistant", "Zyrenth", response["choices"][0]["message"]["content"].strip())
 
     def resend_message(self):
         # print("resending message")
