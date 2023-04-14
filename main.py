@@ -206,7 +206,7 @@ class ChatUI:
         if role not in ["system", "user", "assistant"]:
             raise ValueError("Invalid role provided")
 
-        message_box = Text(self.chat_window, height=(round(len(message)//10)), wrap="word")
+        message_box = Text(self.chat_window, height=(round((len(message)//30)+1)), wrap="word")
         message_box.insert(END, f"{person}: {message.strip()}")
         message_box.config(
             background="#372549",
@@ -217,6 +217,9 @@ class ChatUI:
             font=("FOT-Rodin Pro M", 12),
             wrap="word",
         )
+        if role == "assistant":
+            message_box.config(foreground="#774C60")
+            
         message_box.grid(column=0, columnspan=1, row=self.current_row, sticky="nsew")
         self.current_row += 1
 
