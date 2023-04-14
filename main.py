@@ -188,7 +188,7 @@ class ChatUI:
                 n = 1,
                 max_tokens = 100,
                 temperature = 0.9,
-                stop=["\n", " Human:", " Zyrenth:"],
+                stop=[" Human:", " Zyrenth:",],
                 timeout=100
             )
             self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
@@ -200,19 +200,29 @@ class ChatUI:
     
     def create_message(self, role, person, message, save_to_history=True):
         # make sure the role provided is "system" or "user" or "assistant" or the openai api will throw an error
-        if role != "system" and role != "user" and role != "assistant":
-            return
+        if role not in ["system", "user", "assistant"]:
+            raise ValueError("Invalid role provided")
+
         message_box = Text(self.chat_window, height=3)
-        message_box.insert(END, f"{person}: " + message.strip())
-        message_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
-        # sleep(0.5)
+        message_box.insert(END, f"{person}: {message.strip()}")
+        message_box.config(
+            background="#372549",
+            foreground="#EACDC2",
+            borderwidth=0,
+            highlightthickness=0,
+            relief="flat",
+            font=("FOT-Rodin Pro M", 12),
+            wrap=WORD
+        )
         self.chat_window.window_create(END, window=message_box)
-        message_box.pack(fill=BOTH, expand=True, anchor="n")
+        # message_box.pack(fill=BOTH, expand=True, anchor="n")
+
         # add message to message history in {"role": "user", "content": "message"} format
         if save_to_history:
             messages.append({"role": role, "content": message.strip()})
+
         # add a divider to the chat window
-        self.chat_window.insert(END, "----------------------------------------", "divider")
+        self.chat_window.insert(END, "----------------------------------------\n", "divider")
 
 
 def about_window():
