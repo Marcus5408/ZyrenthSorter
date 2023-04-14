@@ -147,7 +147,7 @@ class ChatUI:
                     messages=messages,
                     max_tokens = 100,
                     temperature = 0.9,
-                    stop=["\n", " Human:", " Zyrenth:"],
+                    stop=[" Human:", " Zyrenth:"],
                     timeout=100
                 )
 
@@ -168,12 +168,13 @@ class ChatUI:
                     messages=messages,
                     max_tokens = 100,
                     temperature = 0.9,
-                    stop=["\n", " Human:", " Zyrenth:"],
+                    stop=[" Human:", " Zyrenth:"],
                     timeout=100
                 )
 
                 self.create_message("system", "Zyrenth", r''+response["choices"][0]["message"]["content"])
                 print(response.choices[0].message)
+                print(response.choices[0])
         else:
             # delete the last text widget in the chat window
             self.chat_window.delete("end-2l", "end-1l")
