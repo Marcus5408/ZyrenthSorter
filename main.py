@@ -13,11 +13,16 @@ from PIL import Image, ImageTk
 from svglib.svglib import svg2rlg
 from svglib.svglib import SvgRenderer
 import webbrowser
-from time import sleep
+from time import sleep, time
 import textwrap
+import asyncio
 
+# imports the environment variables from the .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# set the openai api key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
 
 def import_image(image_relative_path, size=(24, 24)):
     # this stupid function is here because tkinter is stupid and doesn"t like relative paths for images
@@ -101,72 +106,69 @@ class ChatUI:
         master.columnconfigure(0, weight=4)
         master.columnconfigure(1, weight=1)
         master.rowconfigure(4, weight=1)
-
-    def send_message(self):
-        message = self.input_box.get("1.0", "end-1c").strip()
         
-        # send message to ChatGPT API and get response
-        response = "Response from ChatGPT API"
+        # bind enter key to send message
+        master.bind("<Return>", self.send_message)
 
-        def resize_text_widget(event):
-            text = event.widget.get("1.0", END)
-            wrapper = textwrap.TextWrapper(width=(event.widget.winfo_width() // 24))
-            # where is the 7 coming from?
-            # it's the width of the font in pixels
+    def send_message(self, type="normal"):
+        if type != "resend":
+            message = self.input_box.get("1.0", "end-1c").strip()
+            # check if message is empty or is just whitespace, exit function if it is
+            if message == "" or message.isspace():
+                return
 
+            self.create_message("user", "You", message.strip())
 
-            word_list = wrapper.wrap(text=text)
-            event.widget.configure(height=len(word_list))
+            # update message count
+            self.message_count += 1
 
-            # # Get the current text widget contents
-            # text_contents = event.widget.get("1.0", END)
-            
-            # # Calculate the desired height based on the contents
-            # lines = text_contents.count("\n") + 1
-            # height = lines * int(event.widget.index("end-1c").split(".")[0])
-            
-            # # Set the new height of the Text widget
-            # event.widget.configure(height=height)
-        
-        def resize_response_box(event):
-            # Scroll the Text widget to the bottom
-            response_box.yview_moveto(1.0)
+            self.input_box.delete("1.0", END)
 
-            # Get the requested height of the Text widget
-            requested_height = response_box.winfo_reqheight()
+            print(messages)
+            # send message to openai api
+            response = openai.ChatCompletion.create(
+                engine="gpt-3.5-turbo",
+                messages=messages,
+                n = 1,
+                max_tokens = 100,
+                temperature = 0.9,
+                stop=["\n", " Human:", " Zyrenth:"],
+                timeout=100
+            )
 
-            # Set the new height of the Text widget
-            response_box.configure(height=requested_height)
-        # don't add message to chat window if it's empty
-        if message == "":
-            return
+            self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
         else:
-            # get width of parent window (master) and set width of chat window to that
-            # self.chat_window.config(width=self.master.winfo_width())
-
-            # create new text box for message and response
-            message_box = Text(self.chat_window)
-            message_box.insert(END, "You: " + message.strip())
-            message_box.config(background="#FFFFFF", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
-            # sleep(0.5)
-            self.chat_window.window_create(END, window=message_box)
-            message_box.pack(fill=BOTH, expand=True)
-
-            response_box = Text(self.chat_window)
-            response_box.insert(END, "Zyrenth: " + response.strip())
-            response_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
-            # sleep(0.5)
-            self.chat_window.window_create(END, window=response_box)
-            response_box.pack(fill=BOTH, expand=True)
-
-            message_box.bind("<Configure>", resize_text_widget)
-            # response_box.bind("<Configure>", resize_response_box)
-
-        # update message count
-        self.message_count += 1
-
-        self.input_box.delete("1.0", END)
-
+            # delete the last message
+            self.chat_window.delete("end-2l", "end-1l")
+            # delete the last message in the messages list
+            messages.pop(len(messages) - 1)
+            # send message to openai api
+            response = openai.ChatCompletion.create(
+                engine="gpt-3.5-turbo",
+                messages=messages,
+                n = 1,
+                max_tokens = 100,
+                temperature = 0.9,
+                stop=["\n", " Human:", " Zyrenth:"],
+                timeout=100
+            )
+            self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
+        
+    
+    def create_message(self, role, person, message):
+        # make sure the role provided is "system" or "user" or "assistant" or the openai api will throw an error
+        if role != "system" and role != "user" and role != "assistant":
+            return
+        message_box = Text(self.chat_window, height=3)
+        message_box.insert(END, f"{person}: " + message.strip())
+        message_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
+        # sleep(0.5)
+        self.chat_window.window_create(END, window=message_box)
+        message_box.pack(fill=BOTH, expand=True, anchor="n")
+        # add message to message history in {"role": "user", "content": "message"} format
+        messages.append({"role": role, "content": message.strip()})
+        # add a divider to the chat window
+        self.chat_window.insert(END, "----------------------------------------", "divider")
 
 
 def about_window():
@@ -258,10 +260,21 @@ def about_window():
 
     info_window.mainloop()
 
+def resend_message():
+    # call send_message() again from the chat_ui class defined earlier
+
+    chat_ui.send_message()
+
 if __name__ == "__main__":
+    # create the tkinter window and set tkinter to be a thread
+    global messages
+    messages = []
+
     window = Tk()
     window.title("ZyrenthSorter")
     window.geometry("400x630")
+
+    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly female chatbot that is still in development. You will help the user sort the files on their  computer. You first ask them for their name, then ask for the location of the files they want to sort. You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
 
     title_label = Label(window, text="ZyrenthSorter")
     title_label.grid(row=0, column=0, columnspan=2, sticky="ew")
@@ -271,11 +284,13 @@ if __name__ == "__main__":
     subtitle_label.config(background="#1A1423", foreground="#EACDC2", font=("FOT-Rodin Pro M", 12))
 
     about_image, about_imported = import_image("/assets/images/info.png", (24, 24))
-    about_button = tkButton(window, text="About", image=about_imported, command=about_window, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    about_button = tkButton(window, text="About", image=about_imported, command=about_window, background="#1A1423", highlightbackground="#372549", foreground="blue",   activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     about_button.grid(row=0, column=1, sticky="e", padx=(0,10), pady=(10,0))
 
+    chat_ui = ChatUI(window)
+
     regenerate_image, regenerate_imported = import_image("/assets/images/regenerate_message.png", (24, 24))
-    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, command=regenerate_imported, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, command=chat_ui.send_message("resend"), background="#1A1423", highlightbackground="#372549", foreground="blue",     activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     regenerate_button.grid(row=1, column=1, sticky="e", padx=(0,10), pady=(0,10))
 
     title_label.grid_configure(padx=10, pady=(10,0))
@@ -283,8 +298,10 @@ if __name__ == "__main__":
     about_button.grid_configure(padx=10, pady=(10,0))
     regenerate_button.grid_configure(padx=10, pady=(0,10))
 
-    chat_ui = ChatUI(window)
 
+
+    chat_ui.create_message("assistant", "Zyrenth", "Hello! I'm Zyrenth, here to help you sort your files. What is your name?")
+        
     window.configure(background="#1A1423")
 
     window.mainloop()
