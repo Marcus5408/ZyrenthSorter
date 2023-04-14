@@ -60,6 +60,8 @@ class ChatUI:
         self.master = master
         master.title("ZyrenthSorter")
 
+        self.current_row = 0
+
         scrollbar_style = Style()
         scrollbar_style.configure("Vertical.TScrollbar", background="#372549", troughcolor="#372549", borderwidth=0, gripcount=0, arrowsize=0, highlightthickness=0, width=0, relief="flat")
 
@@ -68,8 +70,8 @@ class ChatUI:
         self.chat_window.grid(row = 4, column = 0, columnspan=2, padx=5, pady=5, sticky="nsew")
         self.chat_window.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, width=0, relief="flat", font=("FOT-Rodin Pro M", 12))
         self.chat_window.columnconfigure(0, weight=1)
-        if self.chat_window.yview()[1] == 1.0:
-            self.chat_window.configure(yscrollcommand=None)
+        # if self.chat_window.yview()[1] == 1.0:
+        #     self.chat_window.configure(yscrollcommand=None)
 
         # create input box
         self.input_box = Text(master, height=3, width=2)
@@ -198,12 +200,13 @@ class ChatUI:
         self.send_message("resend")
         # webbrowser.open("https://openai.com")
     
+
     def create_message(self, role, person, message, save_to_history=True):
         # make sure the role provided is "system" or "user" or "assistant" or the openai api will throw an error
         if role not in ["system", "user", "assistant"]:
             raise ValueError("Invalid role provided")
 
-        message_box = Text(self.chat_window, height=3)
+        message_box = Text(self.chat_window, height=(round(len(message)//10)), wrap="word")
         message_box.insert(END, f"{person}: {message.strip()}")
         message_box.config(
             background="#372549",
@@ -212,10 +215,12 @@ class ChatUI:
             highlightthickness=0,
             relief="flat",
             font=("FOT-Rodin Pro M", 12),
-            wrap=WORD
+            wrap="word",
         )
-        self.chat_window.window_create(END, window=message_box)
-        # message_box.pack(fill=BOTH, expand=True, anchor="n")
+        message_box.grid(column=0, columnspan=1, row=self.current_row, sticky="nsew")
+        self.current_row += 1
+
+        self.chat_window.columnconfigure(0, weight=1)
 
         # add message to message history in {"role": "user", "content": "message"} format
         if save_to_history:
@@ -223,6 +228,7 @@ class ChatUI:
 
         # add a divider to the chat window
         self.chat_window.insert(END, "----------------------------------------\n", "divider")
+
 
 
 def about_window():
