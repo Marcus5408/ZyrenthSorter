@@ -14,6 +14,7 @@ from svglib.svglib import svg2rlg
 from svglib.svglib import SvgRenderer
 import webbrowser
 from time import sleep
+import textwrap
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -107,17 +108,59 @@ class ChatUI:
         # send message to ChatGPT API and get response
         response = "Response from ChatGPT API"
 
-        # create new text box for message and response
-        message_box = Text(self.chat_window, height=10, width=50)
+        def resize_text_widget(event):
+            text = event.widget.get("1.0", END)
+            wrapper = textwrap.TextWrapper(width=(event.widget.winfo_width() // 24))
+            # where is the 7 coming from?
+            # it's the width of the font in pixels
 
+
+            word_list = wrapper.wrap(text=text)
+            event.widget.configure(height=len(word_list))
+
+            # # Get the current text widget contents
+            # text_contents = event.widget.get("1.0", END)
+            
+            # # Calculate the desired height based on the contents
+            # lines = text_contents.count("\n") + 1
+            # height = lines * int(event.widget.index("end-1c").split(".")[0])
+            
+            # # Set the new height of the Text widget
+            # event.widget.configure(height=height)
+        
+        def resize_response_box(event):
+            # Scroll the Text widget to the bottom
+            response_box.yview_moveto(1.0)
+
+            # Get the requested height of the Text widget
+            requested_height = response_box.winfo_reqheight()
+
+            # Set the new height of the Text widget
+            response_box.configure(height=requested_height)
         # don't add message to chat window if it's empty
         if message == "":
             return
         else:
+            # get width of parent window (master) and set width of chat window to that
+            # self.chat_window.config(width=self.master.winfo_width())
+
+            # create new text box for message and response
+            message_box = Text(self.chat_window)
             message_box.insert(END, "You: " + message.strip())
-            message_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12))
-            sleep(0.5)
+            message_box.config(background="#FFFFFF", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
+            # sleep(0.5)
             self.chat_window.window_create(END, window=message_box)
+            message_box.pack(fill=BOTH, expand=True)
+
+            response_box = Text(self.chat_window)
+            response_box.insert(END, "Zyrenth: " + response.strip())
+            response_box.config(background="#372549", foreground="#EACDC2", borderwidth=0, highlightthickness=0, relief="flat", font=("FOT-Rodin Pro M", 12), wrap=WORD)
+            # sleep(0.5)
+            self.chat_window.window_create(END, window=response_box)
+            response_box.pack(fill=BOTH, expand=True)
+
+            message_box.bind("<Configure>", resize_text_widget)
+            # response_box.bind("<Configure>", resize_response_box)
 
         # update message count
         self.message_count += 1
