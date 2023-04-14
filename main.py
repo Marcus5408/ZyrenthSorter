@@ -116,31 +116,70 @@ class ChatUI:
             # check if message is empty or is just whitespace, exit function if it is
             if message == "" or message.isspace():
                 return
+            
+            def print_directory_contents(path, indent=0):
+                output = ''
+                for child in os.listdir(path):
+                    child_path = os.path.join(path, child)
+                    if os.path.isdir(child_path):
+                        output += ' ' * indent + child + '/' + '\n'
+                        output += print_directory_contents(child_path, indent + 4)
+                    else:
+                        output += ' ' * indent + child + '\n'
+                return output
 
-            self.create_message("user", "You", message.strip())
+            # see if message contains a directory path
+            if os.path.isdir(message):
+                # create a text file tree of the directory
+                sent_message = print_directory_contents(r'' + message)
+                self.create_message("user", "You", message.strip(), False)
+                messages.append({"role": "user", "content": sent_message})
+                # print(sent_message)
+                # update message count
+                self.message_count += 1
 
-            # update message count
-            self.message_count += 1
+                self.input_box.delete("1.0", END)
 
-            self.input_box.delete("1.0", END)
+                # print(messages)
+                # send message to openai api
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=messages,
+                    max_tokens = 100,
+                    temperature = 0.9,
+                    stop=["\n", " Human:", " Zyrenth:"],
+                    timeout=100
+                )
 
-            # print(messages)
-            # send message to openai api
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=messages,
-                max_tokens = 100,
-                temperature = 0.9,
-                stop=["\n", " Human:", " Zyrenth:"],
-                timeout=100
-            )
+                self.create_message("system", "Zyrenth", r''+ response["choices"][0]["message"]["content"])
+                print(response.choices[0].message)
+            else: 
+                self.create_message("user", "You", message.strip())
 
-            self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
+                # update message count
+                self.message_count += 1
+
+                self.input_box.delete("1.0", END)
+
+                # print(messages)
+                # send message to openai api
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=messages,
+                    max_tokens = 100,
+                    temperature = 0.9,
+                    stop=["\n", " Human:", " Zyrenth:"],
+                    timeout=100
+                )
+
+                self.create_message("system", "Zyrenth", r''+response["choices"][0]["message"]["content"])
+                print(response.choices[0].message)
         else:
-            # delete the last message
+            # delete the last text widget in the chat window
             self.chat_window.delete("end-2l", "end-1l")
             # delete the last message in the messages list
             messages.pop(len(messages) - 1)
+            # print(messages)
             # send message to openai api
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -152,9 +191,13 @@ class ChatUI:
                 timeout=100
             )
             self.create_message("system", "Zyrenth", response["choices"][0]["message"]["content"].strip())
-        
+
+    def resend_message(self):
+        # print("resending message")
+        self.send_message("resend")
+        # webbrowser.open("https://openai.com")
     
-    def create_message(self, role, person, message):
+    def create_message(self, role, person, message, save_to_history=True):
         # make sure the role provided is "system" or "user" or "assistant" or the openai api will throw an error
         if role != "system" and role != "user" and role != "assistant":
             return
@@ -165,7 +208,8 @@ class ChatUI:
         self.chat_window.window_create(END, window=message_box)
         message_box.pack(fill=BOTH, expand=True, anchor="n")
         # add message to message history in {"role": "user", "content": "message"} format
-        messages.append({"role": role, "content": message.strip()})
+        if save_to_history:
+            messages.append({"role": role, "content": message.strip()})
         # add a divider to the chat window
         self.chat_window.insert(END, "----------------------------------------", "divider")
 
@@ -261,8 +305,7 @@ def about_window():
 
 def resend_message():
     # call send_message() again from the chat_ui class defined earlier
-
-    chat_ui.send_message()
+    chat_ui.resend_message()
 
 if __name__ == "__main__":
     # create the tkinter window and set tkinter to be a thread
@@ -273,7 +316,9 @@ if __name__ == "__main__":
     window.title("ZyrenthSorter")
     window.geometry("400x630")
 
-    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will help the user sort the files on their  computer. You first ask them for their name, then ask for the location of the files they want to sort. You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
+    # messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will help the user sort the files on their computer. You first ask them for their name, then ask for the location of the files they want to sort. They will give you You then ask them if they want to sort more files, and if they say yes, you ask them for the location of the files they want to sort. If they say no, you thank them for using ZyrenthSorter and wish them a good day."})
+
+    messages.append({"role": "system", "content": "You are Zyrenth, a helpful and friendly chatbot that is still in development. You will act somewhat like a therapist and help the user sort out their feelings and thoughts. You first ask them for their name and then begin conversing."})
 
     title_label = Label(window, text="ZyrenthSorter")
     title_label.grid(row=0, column=0, columnspan=2, sticky="ew")
@@ -286,16 +331,16 @@ if __name__ == "__main__":
     about_button = tkButton(window, text="About", image=about_imported, command=about_window, background="#1A1423", highlightbackground="#372549", foreground="blue",   activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     about_button.grid(row=0, column=1, sticky="e", padx=(0,10), pady=(10,0))
 
-    chat_ui = ChatUI(window)
-
     regenerate_image, regenerate_imported = import_image("/assets/images/regenerate_message.png", (24, 24))
-    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, background="#1A1423", highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
+    regenerate_button = tkButton(window, text="Regenerate", image=regenerate_imported, background="#1A1423", command=resend_message, highlightbackground="#372549", foreground="blue", activeforeground="#774C60", borderwidth=0, highlightcolor="#774C60", font=("FOT-Rodin Pro DB", 10))
     regenerate_button.grid(row=1, column=1, sticky="e", padx=(0,10), pady=(0,10))
+    regenerate_button.grid_configure(padx=10, pady=(0,10))
+
+    chat_ui = ChatUI(window)
 
     title_label.grid_configure(padx=10, pady=(10,0))
     subtitle_label.grid_configure(padx=10, pady=(0,10))
     about_button.grid_configure(padx=10, pady=(10,0))
-    regenerate_button.grid_configure(padx=10, pady=(0,10))
 
     chat_ui.create_message("assistant", "Zyrenth", "Hello! I'm Zyrenth, here to help you sort your files. What is your name?")
         
